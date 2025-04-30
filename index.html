@@ -119,61 +119,71 @@
     <div class="note-container" id="notes">
         </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const noteInput = document.getElementById('new-note');
-            const saveButton = document.getElementById('save-note');
-            const notesContainer = document.getElementById('notes');
-            const storageKey = 'myAwesomeNotes'; // Key to store notes in local storage
-
-            // Function to load notes from local storage
-            function loadNotes() {
-                const storedNotes = localStorage.getItem(storageKey);
-                if (storedNotes) {
-                    const notes = JSON.parse(storedNotes);
-                    notes.forEach(noteText => addNoteToDisplay(noteText));
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const noteInput = document.getElementById('new-note');
+                const saveButton = document.getElementById('save-note');
+                const notesContainer = document.getElementById('notes');
+                const storageKey = 'myAwesomeNotes'; // Key to store notes in local storage
+        
+                // Function to load notes from local storage
+                function loadNotes() {
+                    const storedNotes = localStorage.getItem(storageKey);
+                    if (storedNotes) {
+                        const notes = JSON.parse(storedNotes);
+                        notes.forEach(noteText => addNoteToDisplay(noteText, false)); // Indicate it's a loaded note
+                    }
                 }
-            }
-
-            // Function to save notes to local storage
-            function saveNotes() {
-                const noteCards = notesContainer.querySelectorAll('.note-card');
-                const notes = Array.from(noteCards).map(card => card.textContent);
-                localStorage.setItem(storageKey, JSON.stringify(notes));
-            }
-
-            // Function to add a new note to the display
-            function addNoteToDisplay(noteText) {
-                const noteCard = document.createElement('div');
-                noteCard.classList.add('note-card');
-                noteCard.textContent = noteText;
-
-                // Add a delete button to each note
-                const deleteButton = document.createElement('button');
-                deleteButton.textContent = 'Delete';
-                deleteButton.classList.add('delete-button'); // Add a class for potential styling
-                deleteButton.addEventListener('click', function() {
-                    noteCard.remove();
-                    saveNotes(); // Update local storage after deletion
+        
+                // Function to save notes to local storage
+                function saveNotes() {
+                    const noteCards = notesContainer.querySelectorAll('.note-card');
+                    const notes = Array.from(noteCards).map(card => {
+                        // Find the note text element within the card
+                        const noteTextElement = card.firstChild;
+                        return noteTextElement ? noteTextElement.textContent : '';
+                    }).filter(text => text !== ''); // Filter out any empty entries
+                    localStorage.setItem(storageKey, JSON.stringify(notes));
+                }
+        
+                // Function to add a new note to the display
+                function addNoteToDisplay(noteText, isNew = true) {
+                    const noteCard = document.createElement('div');
+                    noteCard.classList.add('note-card');
+        
+                    // Create a span element for the note text
+                    const noteTextSpan = document.createElement('span');
+                    noteTextSpan.textContent = noteText;
+                    noteCard.appendChild(noteTextSpan);
+        
+                    // Add a delete button to each note
+                    const deleteButton = document.createElement('button');
+                    deleteButton.textContent = 'Delete';
+                    deleteButton.classList.add('delete-button'); // Add a class for potential styling
+                    deleteButton.addEventListener('click', function() {
+                        noteCard.remove();
+                        saveNotes(); // Update local storage after deletion
+                    });
+        
+                    noteCard.appendChild(deleteButton);
+                    notesContainer.prepend(noteCard);
+                    if (isNew) {
+                        saveNotes(); // Save to local storage after adding a new note
+                    }
+                }
+        
+                // Event listener for the save button
+                saveButton.addEventListener('click', function() {
+                    const noteText = noteInput.value.trim();
+                    if (noteText) {
+                        addNoteToDisplay(noteText);
+                        noteInput.value = ''; // Clear the input after saving
+                    }
                 });
-
-                noteCard.appendChild(deleteButton);
-                notesContainer.prepend(noteCard);
-            }
-
-            // Event listener for the save button
-            saveButton.addEventListener('click', function() {
-                const noteText = noteInput.value.trim();
-                if (noteText) {
-                    addNoteToDisplay(noteText);
-                    saveNotes(); // Save to local storage after adding
-                    noteInput.value = ''; // Clear the input after saving
-                }
+        
+                // Load any existing notes when the page loads
+                loadNotes();
             });
-
-            // Load any existing notes when the page loads
-            loadNotes();
-        });
-    </script>
+        </script>
 </body>
 </html>
